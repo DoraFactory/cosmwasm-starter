@@ -195,7 +195,7 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
     let contractAddress =  msg.tx.tx.events.find(event => event.type === 'instantiate')!.attributes.find(attr => attr.key === "_contract_address")?.value
     let roundId = msg.msg.decodedMsg["msg"]["round_id"];
     let roundDescription = msg.msg.decodedMsg["msg"]["round_description"];
-    let maciDenom = msg.msg.decodedMsg["msg"]["maci_denom"];
+    let maciDenom = "uDORA";
     let other = JSON.stringify(msg.msg.decodedMsg);
     logger.info(`contractAddress: ${contractAddress}`);
 
