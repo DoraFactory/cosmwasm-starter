@@ -179,7 +179,7 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
   logger.info("=================================================");
 
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
-  if (code_id === 16 || code_id === 17) {
+  if (code_id === 18) {
     logger.info("======================== circuit maci qf !!!!! =========================");
     let circuit = "MACI-QF"
     let blockHeight = msg.block.block.header.height
