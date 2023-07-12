@@ -39,8 +39,8 @@ jobs:
         ECR_REPOSITORY: cosmwasm-starter
         IMAGE_TAG: ${{ github.ref_name }}
       run: |
-        # docker tag qrng-ui:local $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        # docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
     - name: Redeploy on aws
       env:
         SUFFIX: ${{ fromJson('["-prod -n webapp", "-dev"]')[github.ref_name == 'dev'] }}
