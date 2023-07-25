@@ -36,6 +36,8 @@ services:
       - --db-schema=app
       - --subscription
       - --batch-size=100
+      - --query-limit=10000000
+      - --debug
       - --force-clean
       - --unsafe
     healthcheck:

@@ -13,22 +13,6 @@
 #   timestamp: String!
 # }
 
-type ExecuteEvent @entity {
-  id: ID!
-  blockHeight: BigInt!
-  txHash: String!
-  contractAddress: String!
-}
-
-type Message @entity {
-  id: ID!
-  blockHeight: BigInt!
-  txHash: String!
-  sender: String!
-  contract: String!
-}
-
-
 type Round @entity {
   id: ID! # contractAddress
   blockHeight: BigInt!
@@ -42,7 +26,7 @@ type Round @entity {
   actionType: String!
   roundId: String!
   roundDescription: String!
-  maciDenom: String!
+  maciDenom: String! @index
   other: String!
 }
 

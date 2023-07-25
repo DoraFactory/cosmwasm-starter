@@ -1,4 +1,4 @@
-import { ExecuteEvent, Message, Round, Transaction } from "../types";
+import { Round, Transaction } from "../types";
 import {
   CosmosEvent,
   CosmosBlock,
@@ -143,35 +143,8 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
     logger.info(`-------------------- Transaction --------------------`)
     logger.info(`-----------------------------------------------------`)
     logger.info(`${blockHeight} Save transaction - ${contractAddress} : ${actionName} ${sender}`);
-
-
   }
 }
-
-// export async function handleEvent(event: CosmosEvent): Promise<void> {
-//   logger.info("=================== Event =====================");
-//   logger.info("===============================================");
-//   logger.info(`handleEvent ${JSON.stringify(event)}`)
-//   logger.info(`Event ${JSON.stringify(event.event.attributes)}`)
-//   logger.info(`height ${JSON.stringify(event.block.block.header.height)}`)
-
-//   const eventRecord = ExecuteEvent.create({
-//     id: `${event.tx.hash}-${event.msg.idx}-${event.idx}`,
-//     blockHeight: BigInt(event.block.block.header.height),
-//     txHash: event.tx.hash,
-//     contractAddress: event.event.attributes.find(attr => attr.key === '_contract_address')!.value
-//   });
-
-//   await eventRecord.save();
-// }
-
-// export async function handleInstantiateEvent(event: CosmosEvent): Promise<void> {
-//   logger.info("=================== Instantiate Event =====================");
-//   logger.info("===============================================");
-//   // logger.info(`handleInstantiateEvent ${JSON.stringify(event)}`)
-//   logger.info(`Event ${JSON.stringify(event.event.attributes)}`)
-//   logger.info(`height ${JSON.stringify(event.block.block.header.height)}`)
-// }
 
 
 export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void> {
@@ -198,6 +171,15 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
     let maciDenom = "uDORA";
     let other = JSON.stringify(msg.msg.decodedMsg);
     logger.info(`contractAddress: ${contractAddress}`);
+    logger.info('-------- here -----');
+    let allRound = await store.getByField(`Round`, "maciDenom", maciDenom, { limit: 100000 });
+    logger.info(allRound.length)
+    logger.info(allRound.toString())
+    logger.info(`rounds ${JSON.stringify(allRound)}`)
+    allRound.map((res) => {
+      logger.info(`round data: ${res}`);
+    })
+    logger.info('-------- here -----');
 
     const roundRecord = Round.create({
       id: `${contractAddress}`,
@@ -222,5 +204,6 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
     logger.info(`${blockHeight} Save round - ${contractAddress} : #${roundId} ${roundDescription}`);
 
     await roundRecord.save();
+
   }
 }
