@@ -38,7 +38,8 @@ network:
         - WeightedVoteOption
 dataSources:
   - kind: cosmos/Runtime
-    startBlock: 109000
+    # startBlock: 109000
+    startBlock: 362900
     mapping:
       file: ./dist/index.js
       handlers:

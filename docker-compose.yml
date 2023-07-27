@@ -18,7 +18,8 @@ services:
       retries: 5
 
   subquery-node:
-    image: onfinality/subql-node-cosmos:v2.8.0
+    # image: onfinality/subql-node-cosmos:v2.8.0
+    image: onfinality/subql-node-cosmos:v2.8.1-1
     depends_on:
       "postgres":
         condition: service_healthy
@@ -37,7 +38,6 @@ services:
       - --subscription
       - --batch-size=100
       - --query-limit=10000000
-      - --debug
       - --force-clean
       - --unsafe
     healthcheck:
@@ -49,7 +49,7 @@ services:
   graphql-engine:
     image: onfinality/subql-query:latest
     ports:
-      - 8000:3000
+      - 3000:3000
     depends_on:
       "postgres":
         condition: service_healthy
