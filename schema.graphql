@@ -48,3 +48,25 @@ type Transaction @entity {
   contractAddress: String!
   other: String!
 }
+
+type SignUpEvent @entity {
+  id: ID! # blockNum - eventId
+  blockHeight: BigInt!
+  timestamp: Date!
+  txHash: String!
+  stateIdx: String!
+  pubKey: String!
+  balance: String!
+  contractAddress: String!
+}
+
+type PublishMessageEvent @entity {
+  id: ID! # blockNum - eventId
+  blockHeight: BigInt!
+  timestamp: Date!
+  txHash: String!
+  msgChainLength: String!
+  message: String!
+  encPubKey: String!
+  contractAddress: String!
+}

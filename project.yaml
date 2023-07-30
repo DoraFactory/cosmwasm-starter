@@ -38,8 +38,9 @@ network:
         - WeightedVoteOption
 dataSources:
   - kind: cosmos/Runtime
-    # startBlock: 109000
-    startBlock: 362900
+    # startBlock: 109000 # code_id is 18
+    # startBlock: 362900 # code_id is 19
+    startBlock: 424700
     mapping:
       file: ./dist/index.js
       handlers:
@@ -48,12 +49,18 @@ dataSources:
         #   kind: cosmos/BlockHandler
         # Using transaction handlers without filters slows your project down as they can be executed with each and every block
         # - handler: handleTransaction
-        # - handler: handleEvent
-        #   kind: cosmos/EventHandler
-        #   filter:
-        #     type: execute
-        #     messageFilter:
-        #       type: "/cosmwasm.wasm.v1.MsgExecuteContract"
+        - handler: handleSignUpEvent
+          kind: cosmos/EventHandler
+          filter:
+            type: wasm
+            messageFilter:
+              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
+        - handler: handleMessageEvent
+          kind: cosmos/EventHandler
+          filter:
+            type: wasm
+            messageFilter:
+              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
         - handler: handleMessage
           kind: cosmos/MessageHandler
           filter:
