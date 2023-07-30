@@ -1,4 +1,4 @@
-import { Round, Transaction } from "../types";
+import { PublishMessageEvent, Round, SignUpEvent, Transaction } from "../types";
 import {
   CosmosEvent,
   CosmosBlock,
@@ -120,6 +120,7 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
     let gasUsed = BigInt(msg.tx.tx.gasUsed);
     let gasWanted = BigInt(msg.tx.tx.gasWanted);
     let other = JSON.stringify(msg.msg.decodedMsg);
+    // let event = JSON.stringify(msg.tx.tx.events);
     let txRecord = Transaction.create({
       id: txHash,
       blockHeight: blockHeight,
@@ -152,7 +153,7 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
   logger.info("=================================================");
 
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
-  if (code_id === 19) {
+  if (code_id === 21) {
     logger.info("======================== circuit maci qf !!!!! =========================");
     let circuit = "MACI-QF"
     let blockHeight = msg.block.block.header.height
@@ -195,5 +196,95 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
 
     await roundRecord.save();
 
+  }
+}
+
+export async function handleSignUpEvent(event: CosmosEvent): Promise<void> {
+  logger.info("=================== Event =====================");
+  logger.info("===============================================");
+  logger.info(`handleEvent ${JSON.stringify(event.event.attributes)}`)
+  logger.info(`height ${JSON.stringify(event.block.block.header.height)}`)
+
+
+  let contractAddress =  event.event.attributes.find(attr => attr.key === "_contract_address")?.value!
+
+  let action_event =  event.event.attributes.find(attr => attr.key === "action")?.value
+
+  logger.info(action_event);
+  logger.info(action_event === "sign_up");
+
+  let roundRecord = await Round.get(contractAddress);
+  if (roundRecord !== undefined && action_event === "sign_up") {
+    let stateIdx =  event.event.attributes.find(attr => attr.key === "state_idx")?.value!
+    let pubKey =  event.event.attributes.find(attr => attr.key === "pubkey")?.value!
+    let balance =  event.event.attributes.find(attr => attr.key === "balance")?.value!
+    let timestamp = new Date(event.tx.block.header.time.getTime())
+
+    const eventRecord = SignUpEvent.create({
+      id: `${event.tx.hash}-${event.msg.idx}-${event.idx}`,
+      blockHeight: BigInt(event.block.block.header.height),
+      timestamp: timestamp,
+      txHash: event.tx.hash,
+      stateIdx: stateIdx,
+      pubKey: pubKey,
+      balance: balance,
+      contractAddress: event.event.attributes.find(attr => attr.key === '_contract_address')!.value
+    });
+
+    await eventRecord.save();
+    logger.info(`-----------------------------------------------------`)
+    logger.info(`------------------- SignUp Event --------------------`)
+    logger.info(`-----------------------------------------------------`)
+    logger.info(`${eventRecord.blockHeight} Save sign_up event - ${contractAddress} : ${stateIdx} ${pubKey} ${balance}`);
+  }
+}
+
+export async function handleMessageEvent(event: CosmosEvent): Promise<void> {
+  logger.info("=================== Event =====================");
+  logger.info("===============================================");
+  logger.info(`handleEvent ${JSON.stringify(event.event.attributes)}`)
+  logger.info(`height ${JSON.stringify(event.block.block.header.height)}`)
+
+  let contractAddress =  event.event.attributes.find(attr => attr.key === "_contract_address")?.value!
+  let action_event =  event.event.attributes.find(attr => attr.key === "action")?.value
+
+  logger.info(action_event);
+  logger.info(action_event === "publish_message");
+
+  let roundRecord = await Round.get(contractAddress);
+  if (roundRecord !== undefined && action_event === "publish_message") {
+    logger.info("1-------------- publish data --------------")
+    logger.info("1-------------- publish data --------------")
+    logger.info("1-------------- publish data --------------")
+
+    let msgChainLength =  event.event.attributes.find(attr => attr.key === "msg_chain_length")?.value
+    let message =  event.event.attributes.find(attr => attr.key === "message")?.value
+    let enc_pub_key =  event.event.attributes.find(attr => attr.key === "enc_pub_key")?.value
+    logger.info("2-------------- publish data --------------")
+    logger.info("2-------------- publish data --------------")
+    logger.info("2-------------- publish data --------------")
+    logger.info(msgChainLength)
+    logger.info(message)
+    logger.info(enc_pub_key)
+    if (msgChainLength !== undefined && message !== undefined && enc_pub_key !== undefined) {
+      let timestamp = new Date(event.tx.block.header.time.getTime())
+      const eventRecord = PublishMessageEvent.create({
+        id: `${event.tx.hash}-${event.msg.idx}-${event.idx}`,
+        blockHeight: BigInt(event.block.block.header.height),
+        timestamp: timestamp,
+        txHash: event.tx.hash,
+        msgChainLength: msgChainLength!,
+        message: message!,
+        encPubKey: enc_pub_key!,
+        contractAddress: contractAddress,
+      });
+  
+      await eventRecord.save();
+  
+      logger.info(`-----------------------------------------------------`)
+      logger.info(`--------------- PublishMessage Event ----------------`)
+      logger.info(`-----------------------------------------------------`)
+      logger.info(`${eventRecord.blockHeight} Save publish_message event - ${contractAddress} : ${msgChainLength} ${message} ${enc_pub_key}`);
+    }
   }
 }
