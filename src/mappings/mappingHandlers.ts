@@ -253,19 +253,9 @@ export async function handleMessageEvent(event: CosmosEvent): Promise<void> {
 
   let roundRecord = await Round.get(contractAddress);
   if (roundRecord !== undefined && action_event === "publish_message") {
-    logger.info("1-------------- publish data --------------")
-    logger.info("1-------------- publish data --------------")
-    logger.info("1-------------- publish data --------------")
-
     let msgChainLength =  event.event.attributes.find(attr => attr.key === "msg_chain_length")?.value
     let message =  event.event.attributes.find(attr => attr.key === "message")?.value
     let enc_pub_key =  event.event.attributes.find(attr => attr.key === "enc_pub_key")?.value
-    logger.info("2-------------- publish data --------------")
-    logger.info("2-------------- publish data --------------")
-    logger.info("2-------------- publish data --------------")
-    logger.info(msgChainLength)
-    logger.info(message)
-    logger.info(enc_pub_key)
     if (msgChainLength !== undefined && message !== undefined && enc_pub_key !== undefined) {
       let timestamp = new Date(event.tx.block.header.time.getTime())
       const eventRecord = PublishMessageEvent.create({
