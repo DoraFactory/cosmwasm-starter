@@ -40,7 +40,8 @@ dataSources:
   - kind: cosmos/Runtime
     # startBlock: 109000 # code_id is 18
     # startBlock: 362900 # code_id is 19
-    startBlock: 424700
+    # startBlock: 424700 # code_id is 21
+    startBlock: 915130 # code_id is 35
     mapping:
       file: ./dist/index.js
       handlers:
