@@ -21,13 +21,16 @@ type Round @entity {
   contractAddress: String!
   circuitName: String!
   timestamp: Date!
+  votingStart: String!
+  votingEnd: String!
   status: String!
   period: String!
   actionType: String!
   roundId: String!
+  roundTitle: String!
   roundDescription: String!
+  roundLink: String!
   maciDenom: String! @index
-  other: String!
 }
 
 
@@ -39,14 +42,13 @@ type Transaction @entity {
   type: String!
   status: String!
   roundId: String!
-  roundDescription: String!
+  roundTitle: String!
   circuitName: String!
   fee: String!
   gasUsed: BigInt!
   gasWanted: BigInt!
   caller: String!
   contractAddress: String!
-  other: String!
 }
 
 type SignUpEvent @entity {

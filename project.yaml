@@ -41,7 +41,10 @@ dataSources:
     # startBlock: 109000 # code_id is 18
     # startBlock: 362900 # code_id is 19
     # startBlock: 424700 # code_id is 21
-    startBlock: 915130 # code_id is 35
+    # startBlock: 915130 # code_id is 35
+    # startBlock: 1105000 # code_id is 38
+    # startBlock: 1106650 # code_id is 39
+    startBlock: 1114000 # code_id is 40
     mapping:
       file: ./dist/index.js
       handlers:
@@ -62,6 +65,25 @@ dataSources:
             type: wasm
             messageFilter:
               type: "/cosmwasm.wasm.v1.MsgExecuteContract"
+        - handler: handleSetRoundInfoEvent
+          kind: cosmos/EventHandler
+          filter:
+            type: wasm
+            messageFilter:
+              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
+        - handler: handleStartVotingEvent
+          kind: cosmos/EventHandler
+          filter:
+            type: wasm
+            messageFilter:
+              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
+        - handler: handleStopVotingEvent
+          kind: cosmos/EventHandler
+          filter:
+            type: wasm
+            messageFilter:
+              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
+
         - handler: handleMessage
           kind: cosmos/MessageHandler
           filter:
