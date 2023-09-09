@@ -6,23 +6,6 @@ import {
   CosmosTransaction,
 } from "@subql/types-cosmos";
 
-/*
-export async function handleBlock(block: CosmosBlock): Promise<void> {
-  // If you want to index each block in Cosmos (CosmosHub), you could do that here
-}
-*/
-
-/*
-export async function handleTransaction(tx: CosmosTransaction): Promise<void> {
-  // If you want to index each transaction in Cosmos (CosmosHub), you could do that here
-  const transactionRecord = Transaction.create({
-    id: tx.hash,
-    blockHeight: BigInt(tx.block.block.header.height),
-    timestamp: tx.block.block.header.time,
-  });
-  await transactionRecord.save();
-}
-*/
 enum RoundStatus {
   Created = "Created",
   Ongoing = "Ongoing",
@@ -149,7 +132,6 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
       type: type,
       status: txSTatus,
       roundId: roundRecord.roundId,
-      roundTitle: roundRecord.roundTitle,
       circuitName: roundRecord.circuitName,
       fee: fee,
       gasUsed: gasUsed,
@@ -172,7 +154,7 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
   logger.info("=================================================");
 
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
-  if (code_id === 41) {
+  if (code_id === 42) {
     logger.info("======================== circuit maci qf !!!!! =========================");
     let circuit = "MACI-QF"
     let blockHeight = msg.block.block.header.height
@@ -188,22 +170,9 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
     // let roundDescription = msg.msg.decodedMsg["msg"]["round_info"]["description"];
     // let roundLink = msg.msg.decodedMsg["msg"]["round_info"]["link"];
     let roundInfo = msg.msg.decodedMsg["msg"]["round_info"]
-    let roundTitle = ""
-    let roundDescription = ""
-    let roundLink = ""
-    if (roundInfo !== null) {
-      if (roundInfo["title"] !== null) {
-        roundTitle = roundInfo["title"]
-      }
-
-      if (roundInfo["description"] !== null) {
-        roundDescription = roundInfo["description"]
-      }
-
-      if (roundInfo["link"] !== null) {
-        roundLink = roundInfo["link"]
-      }
-    }
+    let roundTitle = roundInfo["title"]
+    let roundDescription = roundInfo["description"]
+    let roundLink = roundInfo["link"]
 
     let votingStart = "0"
     let votingEnd = "0"
@@ -243,7 +212,6 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
       roundDescription,
       roundLink,
       maciDenom,
-      // other,
     });
 
     logger.info(`-----------------------------------------------`)
@@ -353,9 +321,9 @@ export async function handleSetRoundInfoEvent(event: CosmosEvent): Promise<void>
 
   let roundRecord = await Round.get(contractAddress);
   if (roundRecord !== undefined && action_event === "set_round_info") {
-    let roundTitle =  event.event.attributes.find(attr => attr.key === "title")!.value!
-    let roundDescription =  event.event.attributes.find(attr => attr.key === "description")!.value!
-    let roundLink =  event.event.attributes.find(attr => attr.key === "link")!.value!
+    let roundTitle = event.event.attributes.find(attr => attr.key === "title")!.value!
+    let roundDescription = event.event.attributes.find(attr => attr.key === "description")!.value!
+    let roundLink = event.event.attributes.find(attr => attr.key === "link")!.value!
     roundRecord.roundTitle = roundTitle
     roundRecord.roundDescription = roundDescription
     roundRecord.roundLink = roundLink

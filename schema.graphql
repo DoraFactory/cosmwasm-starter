@@ -42,7 +42,6 @@ type Transaction @entity {
   type: String!
   status: String!
   roundId: String!
-  roundTitle: String!
   circuitName: String!
   fee: String!
   gasUsed: BigInt!
