@@ -1,4 +1,4 @@
-import { PublishMessageEvent, Round, SignUpEvent, Transaction } from "../types";
+import { PublishMessageEvent, Round, SignUpEvent, Transaction, ProcessProof } from "../types";
 import {
   CosmosEvent,
   CosmosBlock,
@@ -46,6 +46,7 @@ enum TxStatus {
 export async function handleMessage(msg: CosmosMessage): Promise<void> {
   logger.info("=================== Message =====================");
   logger.info("=================================================");
+  logger.info(`Message ${JSON.stringify(msg.tx.decodedTx)}`)
   logger.info(`Message ${JSON.stringify(msg.msg.decodedMsg)}`)
   logger.info(`height ${JSON.stringify(msg.block.block.header.height)}`)
 
@@ -112,7 +113,7 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
 
     let blockHeight = BigInt(msg.block.block.header.height)
     let txHash = msg.tx.hash
-    let timestamp = new Date(msg.tx.block.header.time.getTime())
+    let timestamp = msg.tx.block.header.time.getTime().toString()
     let sender = msg.msg.decodedMsg.sender
     let txSTatus = TxStatus.Success;
     let fee = msg.tx.tx.events.find(event => event.type === 'tx')!.attributes.find(attr => attr.key === "fee")?.value
@@ -126,18 +127,18 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
     // let event = JSON.stringify(msg.tx.tx.events);
     let txRecord = Transaction.create({
       id: txHash,
-      blockHeight: blockHeight,
-      txHash: txHash,
-      timestamp: timestamp,
-      type: type,
+      blockHeight,
+      txHash,
+      timestamp,
+      type,
       status: txSTatus,
       roundId: roundRecord.roundId,
       circuitName: roundRecord.circuitName,
-      fee: fee,
-      gasUsed: gasUsed,
-      gasWanted: gasWanted,
+      fee,
+      gasUsed,
+      gasWanted,
       caller: sender,
-      contractAddress: contractAddress,
+      contractAddress,
       // other: other,
     })
     txRecord.save()
@@ -154,11 +155,11 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
   logger.info("=================================================");
 
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
-  if (code_id === 42) {
+  if (code_id === 46) {
     logger.info("======================== circuit maci qf !!!!! =========================");
     let circuit = "MACI-QF"
     let blockHeight = msg.block.block.header.height
-    let timestamp = new Date(msg.tx.block.header.time.getTime())
+    let timestamp = msg.tx.block.header.time.getTime().toString()
     let txHash = msg.tx.hash
     let status = RoundStatus.Created;
     let period = PeriodStatus.Pending;
@@ -214,6 +215,35 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
       maciDenom,
     });
 
+
+    let sender = operator
+    let txSTatus = TxStatus.Success;
+    let fee = msg.tx.tx.events.find(event => event.type === 'tx')!.attributes.find(attr => attr.key === "fee")?.value
+    if (fee === undefined) {
+      fee = "0uDORA"
+      txSTatus = TxStatus.Fail
+    }
+    let gasUsed = BigInt(msg.tx.tx.gasUsed);
+    let gasWanted = BigInt(msg.tx.tx.gasWanted);
+    // let other = JSON.stringify(msg.msg.decodedMsg);
+    // let event = JSON.stringify(msg.tx.tx.events);
+    let txRecord = Transaction.create({
+      id: txHash,
+      blockHeight: BigInt(blockHeight),
+      txHash: txHash,
+      timestamp,
+      type: actionType,
+      status: txSTatus,
+      roundId: roundRecord.roundId,
+      circuitName: roundRecord.circuitName,
+      fee: fee,
+      gasUsed: gasUsed,
+      gasWanted: gasWanted,
+      caller: sender,
+      contractAddress: contractAddress!,
+    })
+    txRecord.save()
+
     logger.info(`-----------------------------------------------`)
     logger.info(`-------------------- Round --------------------`)
     logger.info(`-----------------------------------------------`)
@@ -224,10 +254,10 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
   }
 }
 
-export async function handleSignUpEvent(event: CosmosEvent): Promise<void> {
+export async function handleEvent(event: CosmosEvent): Promise<void> {
   logger.info("=================== Event =====================");
   logger.info("===============================================");
-  logger.info(`handleSignUpEvent ${JSON.stringify(event.event.attributes)}`)
+  logger.info(`handleEvent ${JSON.stringify(event.event.attributes)}`)
   logger.info(`height ${JSON.stringify(event.block.block.header.height)}`)
 
 
@@ -239,136 +269,130 @@ export async function handleSignUpEvent(event: CosmosEvent): Promise<void> {
   logger.info(action_event === "sign_up");
 
   let roundRecord = await Round.get(contractAddress);
-  if (roundRecord !== undefined && action_event === "sign_up") {
-    let stateIdx =  event.event.attributes.find(attr => attr.key === "state_idx")?.value!
-    let pubKey =  event.event.attributes.find(attr => attr.key === "pubkey")?.value!
-    let balance =  event.event.attributes.find(attr => attr.key === "balance")?.value!
-    let timestamp = new Date(event.tx.block.header.time.getTime())
-
-    const eventRecord = SignUpEvent.create({
-      id: `${event.tx.hash}-${event.msg.idx}-${event.idx}`,
-      blockHeight: BigInt(event.block.block.header.height),
-      timestamp: timestamp,
-      txHash: event.tx.hash,
-      stateIdx: stateIdx,
-      pubKey: pubKey,
-      balance: balance,
-      contractAddress: event.event.attributes.find(attr => attr.key === '_contract_address')!.value
-    });
-
-    await eventRecord.save();
-    logger.info(`-----------------------------------------------------`)
-    logger.info(`------------------- SignUp Event --------------------`)
-    logger.info(`-----------------------------------------------------`)
-    logger.info(`${eventRecord.blockHeight} Save sign_up event - ${contractAddress} : ${stateIdx} ${pubKey} ${balance}`);
-  }
-}
-
-export async function handleMessageEvent(event: CosmosEvent): Promise<void> {
-  logger.info("=================== Event =====================");
-  logger.info("===============================================");
-  logger.info(`handleMessageEvent ${JSON.stringify(event.event.attributes)}`)
-  logger.info(`height ${JSON.stringify(event.block.block.header.height)}`)
-
-  let contractAddress =  event.event.attributes.find(attr => attr.key === "_contract_address")?.value!
-  let action_event =  event.event.attributes.find(attr => attr.key === "action")?.value
-
-  logger.info(action_event);
-  logger.info(action_event === "publish_message");
-
-  let roundRecord = await Round.get(contractAddress);
-  if (roundRecord !== undefined && action_event === "publish_message") {
-    let msgChainLength =  event.event.attributes.find(attr => attr.key === "msg_chain_length")?.value
-    let message =  event.event.attributes.find(attr => attr.key === "message")?.value
-    let enc_pub_key =  event.event.attributes.find(attr => attr.key === "enc_pub_key")?.value
-    if (msgChainLength !== undefined && message !== undefined && enc_pub_key !== undefined) {
-      let timestamp = new Date(event.tx.block.header.time.getTime())
-      const eventRecord = PublishMessageEvent.create({
-        id: `${event.tx.hash}-${event.msg.idx}-${event.idx}`,
-        blockHeight: BigInt(event.block.block.header.height),
-        timestamp: timestamp,
-        txHash: event.tx.hash,
-        msgChainLength: msgChainLength!,
-        message: message!,
-        encPubKey: enc_pub_key!,
-        contractAddress: contractAddress,
-      });
-  
-      await eventRecord.save();
-  
-      logger.info(`-----------------------------------------------------`)
-      logger.info(`--------------- PublishMessage Event ----------------`)
-      logger.info(`-----------------------------------------------------`)
-      logger.info(`${eventRecord.blockHeight} Save publish_message event - ${contractAddress} : ${msgChainLength} ${message} ${enc_pub_key}`);
+  if (roundRecord !== undefined) {
+    if (action_event === "sign_up") {
+      await handleSignUpEvent(event, contractAddress);
+    } else if (action_event === "publish_message") {
+      await handlePublishMessageEvent(event, contractAddress);
+    } else if (action_event === "set_round_info") {
+      await handleSetRoundInfoEvent(event, roundRecord);
+    } else if (action_event === "start_voting_period") {
+      await handleStartVotingEvent(event, roundRecord);
+    } else if (action_event === "stop_voting_period") {
+      await handleStopVotingEvent(event, roundRecord);
+    } else if (action_event === "process_message") {
+      await handleProofEvent(event, contractAddress, "message");
+    } else if (action_event === "process_tally") {
+      await handleProofEvent(event, contractAddress, "tally");
     }
   }
 }
 
-export async function handleSetRoundInfoEvent(event: CosmosEvent): Promise<void> {
-  logger.info("=================== Event =====================");
-  logger.info("===============================================");
-  logger.info(`handleSetRoundInfoEvent ${JSON.stringify(event.event.attributes)}`)
-  logger.info(`height ${JSON.stringify(event.block.block.header.height)}`)
+export async function handleSignUpEvent(event: CosmosEvent, contractAddress: string): Promise<void> {
+  let stateIdx =  event.event.attributes.find(attr => attr.key === "state_idx")?.value!
+  let pubKey =  event.event.attributes.find(attr => attr.key === "pubkey")?.value!
+  let balance =  event.event.attributes.find(attr => attr.key === "balance")?.value!
+  let timestamp = event.tx.block.header.time.getTime().toString()
 
+  const eventRecord = SignUpEvent.create({
+    id: `${event.tx.hash}-${event.msg.idx}-${event.idx}`,
+    blockHeight: BigInt(event.block.block.header.height),
+    timestamp,
+    txHash: event.tx.hash,
+    stateIdx,
+    pubKey,
+    balance,
+    contractAddress,
+  });
 
-  let contractAddress =  event.event.attributes.find(attr => attr.key === "_contract_address")?.value!
+  await eventRecord.save();
+  logger.info(`-----------------------------------------------------`)
+  logger.info(`------------------- SignUp Event --------------------`)
+  logger.info(`-----------------------------------------------------`)
+  logger.info(`${eventRecord.blockHeight} Save sign_up event - ${contractAddress} : ${stateIdx} ${pubKey} ${balance}`);
+}
 
-  let action_event =  event.event.attributes.find(attr => attr.key === "action")?.value
+export async function handlePublishMessageEvent(event: CosmosEvent, contractAddress: string): Promise<void> {
+  let msgChainLength =  event.event.attributes.find(attr => attr.key === "msg_chain_length")?.value
+  let message =  event.event.attributes.find(attr => attr.key === "message")?.value
+  let enc_pub_key =  event.event.attributes.find(attr => attr.key === "enc_pub_key")?.value
+  if (msgChainLength !== undefined && message !== undefined && enc_pub_key !== undefined) {
+    let timestamp = event.tx.block.header.time.getTime().toString()
+    const eventRecord = PublishMessageEvent.create({
+      id: `${event.tx.hash}-${event.msg.idx}-${event.idx}`,
+      blockHeight: BigInt(event.block.block.header.height),
+      timestamp,
+      txHash: event.tx.hash,
+      msgChainLength: msgChainLength!,
+      message: message!,
+      encPubKey: enc_pub_key!,
+      contractAddress: contractAddress,
+    });
 
-  logger.info(action_event);
-  logger.info(action_event === "set_round_info");
-  logger.info(action_event, "set_round_info");
+    await eventRecord.save();
 
-  let roundRecord = await Round.get(contractAddress);
-  if (roundRecord !== undefined && action_event === "set_round_info") {
-    let roundTitle = event.event.attributes.find(attr => attr.key === "title")!.value!
-    let roundDescription = event.event.attributes.find(attr => attr.key === "description")!.value!
-    let roundLink = event.event.attributes.find(attr => attr.key === "link")!.value!
-    roundRecord.roundTitle = roundTitle
-    roundRecord.roundDescription = roundDescription
-    roundRecord.roundLink = roundLink
-    roundRecord.save()
+    logger.info(`-----------------------------------------------------`)
+    logger.info(`--------------- PublishMessage Event ----------------`)
+    logger.info(`-----------------------------------------------------`)
+    logger.info(`${eventRecord.blockHeight} Save publish_message event - ${contractAddress} : ${msgChainLength} ${message} ${enc_pub_key}`);
   }
 }
 
-export async function handleStartVotingEvent(event: CosmosEvent): Promise<void> {
-  logger.info("=================== Event =====================");
-  logger.info("===============================================");
-  logger.info(`handleSetRoundInfoEvent ${JSON.stringify(event.event.attributes)}`)
-  logger.info(`height ${JSON.stringify(event.block.block.header.height)}`)
-
-  let contractAddress =  event.event.attributes.find(attr => attr.key === "_contract_address")?.value!
-  let action_event =  event.event.attributes.find(attr => attr.key === "action")?.value
-
-  logger.info(action_event);
-  logger.info(action_event === "start");
-
-  let roundRecord = await Round.get(contractAddress);
-  if (roundRecord !== undefined && action_event === "start_voting_period") {
-    const votingStart =  event.event.attributes.find(attr => attr.key === "start_time")!.value!
-    // roundRecord.votingStart = new Date(votingStart)
-    roundRecord.votingStart = votingStart
-    roundRecord.save()
+export async function handleSetRoundInfoEvent(event: CosmosEvent, roundRecord: Round): Promise<void> {
+  let roundTitle = event.event.attributes.find(attr => attr.key === "title")!.value!
+  let roundDescription = event.event.attributes.find(attr => attr.key === "description")?.value
+  let roundLink = event.event.attributes.find(attr => attr.key === "link")?.value
+  
+  if (roundDescription === undefined) {
+    roundDescription = ""
   }
+
+  if (roundLink === undefined) {
+    roundLink = ""
+  }
+
+  roundRecord.roundTitle = roundTitle
+  roundRecord.roundDescription = roundDescription
+  roundRecord.roundLink = roundLink
+  roundRecord.save()
 }
 
-export async function handleStopVotingEvent(event: CosmosEvent): Promise<void> {
-  logger.info("=================== Event =====================");
-  logger.info("===============================================");
-  logger.info(`handleStopVotingEvent ${JSON.stringify(event.event.attributes)}`)
-  logger.info(`height ${JSON.stringify(event.block.block.header.height)}`)
+export async function handleStartVotingEvent(event: CosmosEvent, roundRecord: Round): Promise<void> {
+  const votingStart =  event.event.attributes.find(attr => attr.key === "start_time")!.value!
+  roundRecord.votingStart = votingStart
+  roundRecord.save()
+}
 
-  let contractAddress =  event.event.attributes.find(attr => attr.key === "_contract_address")?.value!
-  let action_event =  event.event.attributes.find(attr => attr.key === "action")?.value
+export async function handleStopVotingEvent(event: CosmosEvent, roundRecord: Round): Promise<void> {
+  const votingEnd =  event.event.attributes.find(attr => attr.key === "end_time")!.value!
+  // roundRecord.votingEnd = new Date(votingEnd)
+  roundRecord.votingEnd = votingEnd
+  roundRecord.save()
+}
 
-  logger.info(action_event);
-  logger.info(action_event === "stop_voting_period");
+export async function handleProofEvent(event: CosmosEvent, contractAddress: string, actionType: string): Promise<void> {
+  let zk_verify_result = event.event.attributes.find(attr => attr.key === "zk_verify")!.value!
 
-  let roundRecord = await Round.get(contractAddress);
-  if (roundRecord !== undefined && action_event === "stop_voting_period") {
-    const votingEnd =  event.event.attributes.find(attr => attr.key === "end_time")!.value!
-    // roundRecord.votingEnd = new Date(votingEnd)
-    roundRecord.votingEnd = votingEnd
-    roundRecord.save()
+  if (zk_verify_result === "true") {
+    const piA = event.event.attributes.find(attr => attr.key === "pi_a")!.value!
+    const piB = event.event.attributes.find(attr => attr.key === "pi_b")!.value!
+    const piC = event.event.attributes.find(attr => attr.key === "pi_c")!.value!
+    const commitment = event.event.attributes.find(attr => attr.key === "commitment")!.value!
+
+    let timestamp = event.tx.block.header.time.getTime().toString()
+    const eventRecord = ProcessProof.create({
+      id: `${event.tx.hash}-${event.msg.idx}-${event.idx}`,
+      blockHeight: BigInt(event.block.block.header.height),
+      timestamp,
+      txHash: event.tx.hash,
+      actionType,
+      piA,
+      piB,
+      piC,
+      commitment,
+      contractAddress: contractAddress,
+    });
+
+    await eventRecord.save();
   }
 }

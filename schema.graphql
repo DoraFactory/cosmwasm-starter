@@ -20,7 +20,7 @@ type Round @entity {
   operator: String!
   contractAddress: String!
   circuitName: String!
-  timestamp: Date!
+  timestamp: String!
   votingStart: String!
   votingEnd: String!
   status: String!
@@ -38,7 +38,7 @@ type Transaction @entity {
   id: ID! # txHash
   blockHeight: BigInt!
   txHash: String!
-  timestamp: Date!
+  timestamp: String!
   type: String!
   status: String!
   roundId: String!
@@ -53,7 +53,7 @@ type Transaction @entity {
 type SignUpEvent @entity {
   id: ID! # blockNum - eventId
   blockHeight: BigInt!
-  timestamp: Date!
+  timestamp: String!
   txHash: String!
   stateIdx: String!
   pubKey: String!
@@ -64,10 +64,23 @@ type SignUpEvent @entity {
 type PublishMessageEvent @entity {
   id: ID! # blockNum - eventId
   blockHeight: BigInt!
-  timestamp: Date!
+  timestamp: String!
   txHash: String!
   msgChainLength: String!
   message: String!
   encPubKey: String!
+  contractAddress: String!
+}
+
+type ProcessProof @entity {
+  id: ID! # blockNum - eventId
+  blockHeight: BigInt!
+  timestamp: String!
+  txHash: String!
+  actionType: String! # message / tally
+  piA: String!
+  piB: String!
+  piC: String!
+  commitment: String!
   contractAddress: String!
 }

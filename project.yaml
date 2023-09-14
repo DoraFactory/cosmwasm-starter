@@ -46,7 +46,11 @@ dataSources:
     # startBlock: 1106650 # code_id is 39
     # startBlock: 1114000 # code_id is 40
     # startBlock: 1119000 # code_id is 41
-    startBlock: 1136000 # code_id is 42
+    # startBlock: 1136000 # code_id is 42
+    # startBlock: 1190000 # code_id is 44
+    # startBlock: 1205100 # code_id is 45
+    startBlock:	1207600 # code_id is 46
+    # startBlock: 1225100 # code_id is 46 with failed tx
     mapping:
       file: ./dist/index.js
       handlers:
@@ -55,31 +59,8 @@ dataSources:
         #   kind: cosmos/BlockHandler
         # Using transaction handlers without filters slows your project down as they can be executed with each and every block
         # - handler: handleTransaction
-        - handler: handleSignUpEvent
-          kind: cosmos/EventHandler
-          filter:
-            type: wasm
-            messageFilter:
-              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
-        - handler: handleMessageEvent
-          kind: cosmos/EventHandler
-          filter:
-            type: wasm
-            messageFilter:
-              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
-        - handler: handleSetRoundInfoEvent
-          kind: cosmos/EventHandler
-          filter:
-            type: wasm
-            messageFilter:
-              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
-        - handler: handleStartVotingEvent
-          kind: cosmos/EventHandler
-          filter:
-            type: wasm
-            messageFilter:
-              type: "/cosmwasm.wasm.v1.MsgExecuteContract"
-        - handler: handleStopVotingEvent
+
+        - handler: handleEvent
           kind: cosmos/EventHandler
           filter:
             type: wasm
@@ -89,18 +70,11 @@ dataSources:
         - handler: handleMessage
           kind: cosmos/MessageHandler
           filter:
+            # includeFailedTx: true
             type: "/cosmwasm.wasm.v1.MsgExecuteContract"
-            # type: /cosmos.bank.v1beta1.MsgSend
 
-        # - handler: handleInstantiateEvent
-        #   kind: cosmos/EventHandler
-        #   filter:
-        #     type: instantiate
-        #     messageFilter:
-        #       type: "/cosmwasm.wasm.v1.MsgInstantiateContract"
         - handler: handleInstantiateMessage
           kind: cosmos/MessageHandler
           filter:
+            # includeFailedTx: true
             type: "/cosmwasm.wasm.v1.MsgInstantiateContract"
-            # type: /cosmos.bank.v1beta1.MsgSend
-
