@@ -30,6 +30,11 @@ type Round @entity {
   roundTitle: String!
   roundDescription: String!
   roundLink: String!
+  coordinatorPubkeyX: String!
+  coordinatorPubkeyY: String!
+  voteOptionMap: String!
+  results: String!
+  allResult: String!
   maciDenom: String! @index
 }
 

@@ -46,7 +46,6 @@ enum TxStatus {
 export async function handleMessage(msg: CosmosMessage): Promise<void> {
   logger.info("=================== Message =====================");
   logger.info("=================================================");
-  logger.info(`Message ${JSON.stringify(msg.tx.decodedTx)}`)
   logger.info(`Message ${JSON.stringify(msg.msg.decodedMsg)}`)
   logger.info(`height ${JSON.stringify(msg.block.block.header.height)}`)
 
@@ -144,9 +143,9 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
     txRecord.save()
 
     logger.info(`-----------------------------------------------------`)
-    logger.info(`-------------------- Transaction --------------------`)
+    logger.info(`-------------------- Transaction: ${actionName} --------------------`)
     logger.info(`-----------------------------------------------------`)
-    logger.info(`${blockHeight} Save transaction - ${contractAddress} : ${actionName} ${sender}`);
+    logger.info(`${blockHeight} Save ${actionName} transaction - ${contractAddress} : ${actionName} ${sender}`);
   }
 }
 
@@ -155,7 +154,7 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
   logger.info("=================================================");
 
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
-  if (code_id === 46) {
+  if (code_id === 49) {
     logger.info("======================== circuit maci qf !!!!! =========================");
     let circuit = "MACI-QF"
     let blockHeight = msg.block.block.header.height
@@ -167,9 +166,6 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
     let operator = msg.msg.decodedMsg["sender"];
     let contractAddress =  msg.tx.tx.events.find(event => event.type === 'instantiate')!.attributes.find(attr => attr.key === "_contract_address")?.value
 
-    // let roundTitle = msg.msg.decodedMsg["msg"]["round_info"]["title"];
-    // let roundDescription = msg.msg.decodedMsg["msg"]["round_info"]["description"];
-    // let roundLink = msg.msg.decodedMsg["msg"]["round_info"]["link"];
     let roundInfo = msg.msg.decodedMsg["msg"]["round_info"]
     let roundTitle = roundInfo["title"]
     let roundDescription = roundInfo["description"]
@@ -189,8 +185,16 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
       }
     }
 
+    let coordinatorPubkeyX = msg.msg.decodedMsg["msg"]["coordinator"]['x']
+    let coordinatorPubkeyY = msg.msg.decodedMsg["msg"]["coordinator"]['y']
+    let maxVoteOptions = msg.msg.decodedMsg["msg"]["max_vote_options"]
+
+    let voteOptionMap = JSON.stringify(Array.from({ length: Number(maxVoteOptions) }, () => ""));
+
+    let results = JSON.stringify([]);
+    let allResult = "0"
+
     let maciDenom = "uDORA";
-    // let other = JSON.stringify(msg.msg.decodedMsg);
     logger.info(`contractAddress: ${contractAddress}`);
     let allRound = await store.getByField(`Round`, "maciDenom", maciDenom, { limit: 100000 }) as unknown as Round[];
 
@@ -212,6 +216,11 @@ export async function handleInstantiateMessage(msg: CosmosMessage): Promise<void
       roundTitle,
       roundDescription,
       roundLink,
+      coordinatorPubkeyX,
+      coordinatorPubkeyY,
+      voteOptionMap,
+      results,
+      allResult,
       maciDenom,
     });
 
@@ -265,9 +274,6 @@ export async function handleEvent(event: CosmosEvent): Promise<void> {
 
   let action_event =  event.event.attributes.find(attr => attr.key === "action")?.value
 
-  logger.info(action_event);
-  logger.info(action_event === "sign_up");
-
   let roundRecord = await Round.get(contractAddress);
   if (roundRecord !== undefined) {
     if (action_event === "sign_up") {
@@ -284,6 +290,10 @@ export async function handleEvent(event: CosmosEvent): Promise<void> {
       await handleProofEvent(event, contractAddress, "message");
     } else if (action_event === "process_tally") {
       await handleProofEvent(event, contractAddress, "tally");
+    } else if (action_event === "set_vote_option") {
+      handleSetVoteOption(event, roundRecord)
+    } else if (action_event === "stop_tallying_period") {
+      handleStopTallyingPeriod(event, roundRecord)
     }
   }
 }
@@ -365,7 +375,6 @@ export async function handleStartVotingEvent(event: CosmosEvent, roundRecord: Ro
 
 export async function handleStopVotingEvent(event: CosmosEvent, roundRecord: Round): Promise<void> {
   const votingEnd =  event.event.attributes.find(attr => attr.key === "end_time")!.value!
-  // roundRecord.votingEnd = new Date(votingEnd)
   roundRecord.votingEnd = votingEnd
   roundRecord.save()
 }
@@ -395,4 +404,20 @@ export async function handleProofEvent(event: CosmosEvent, contractAddress: stri
 
     await eventRecord.save();
   }
+}
+
+export async function handleSetVoteOption(event: CosmosEvent, roundRecord: Round): Promise<void> {
+  const voteOptionMap =  event.event.attributes.find(attr => attr.key === "vote_option_map")!.value!
+  roundRecord.voteOptionMap = voteOptionMap
+  roundRecord.save()
+}
+
+export async function handleStopTallyingPeriod(event: CosmosEvent, roundRecord: Round): Promise<void> {
+  logger.info(`------------------- stop tallying period`)
+  logger.info(event.event.attributes)
+  const results =  event.event.attributes.find(attr => attr.key === "results")!.value!
+  const allResult =  event.event.attributes.find(attr => attr.key === "all_result")!.value!
+  roundRecord.results = results
+  roundRecord.allResult = allResult
+  roundRecord.save()
 }
