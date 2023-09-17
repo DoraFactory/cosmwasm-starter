@@ -52,7 +52,8 @@ dataSources:
     # startBlock:	1207600 # code_id is 46 start right
     # startBlock: 1225100 # code_id is 46 with failed tx
     # startBlock: 1237900 # code_id is 47 test round
-    startBlock: 1263700 # code_id is 49 test round and fix some nits
+    # startBlock: 1263700 # code_id is 49 test round and fix some nits
+    startBlock: 1267100 # code_id is 50 test round and fix results
     mapping:
       file: ./dist/index.js
       handlers:
