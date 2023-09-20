@@ -60,7 +60,7 @@ type SignUpEvent @entity {
   blockHeight: BigInt!
   timestamp: String!
   txHash: String!
-  stateIdx: String!
+  stateIdx: Int!
   pubKey: String!
   balance: String!
   contractAddress: String!
@@ -71,7 +71,7 @@ type PublishMessageEvent @entity {
   blockHeight: BigInt!
   timestamp: String!
   txHash: String!
-  msgChainLength: String!
+  msgChainLength: Int!
   message: String!
   encPubKey: String!
   contractAddress: String!
