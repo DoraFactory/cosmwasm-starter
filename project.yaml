@@ -20,7 +20,7 @@ network:
   # We recommend providing more than one endpoint for improved reliability, performance, and uptime
   # Public nodes may be rate limited, which can affect indexing speed
   # When developing your project we suggest getting a private API key
-  endpoint: ["http://18.139.226.67:26657"]
+  endpoint: ["https://vota-rpc.dorafactory.org:443"]
   # Optionally provide the HTTP endpoint of a full chain dictionary to speed up processing
   # dictionary: "https://api.subquery.network/sq/subquery/cosmos-hub-dictionary"
   chainTypes:
@@ -38,23 +38,7 @@ network:
         - WeightedVoteOption
 dataSources:
   - kind: cosmos/Runtime
-    # startBlock: 109000 # code_id is 18
-    # startBlock: 362900 # code_id is 19
-    # startBlock: 424700 # code_id is 21
-    # startBlock: 915130 # code_id is 35
-    # startBlock: 1105000 # code_id is 38
-    # startBlock: 1106650 # code_id is 39
-    # startBlock: 1114000 # code_id is 40
-    # startBlock: 1119000 # code_id is 41
-    # startBlock: 1136000 # code_id is 42
-    # startBlock: 1190000 # code_id is 44
-    # startBlock: 1205100 # code_id is 45
-    # startBlock:	1207600 # code_id is 46 start right
-    # startBlock: 1225100 # code_id is 46 with failed tx
-    # startBlock: 1237900 # code_id is 47 test round
-    # startBlock: 1263700 # code_id is 49 test round and fix some nits
-    # startBlock: 1267100 # code_id is 50 test round and fix results
-    startBlock: 1323500 # code_id is 52
+    startBlock: 359775 # code_id is 4
     mapping:
       file: ./dist/index.js
       handlers:
