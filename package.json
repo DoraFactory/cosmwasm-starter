@@ -9,7 +9,8 @@
     "start:docker": "docker-compose pull && docker-compose up --remove-orphans",
     "dev": "subql codegen && subql build && docker-compose pull && docker-compose up --remove-orphans",
     "prepack": "rm -rf dist && npm run build",
-    "test": "subql build && subql-node-cosmos test"
+    "test": "subql build && subql-node-cosmos test",
+    "restart": "rm -rf .data/ && docker-compose down && subql codegen && subql build && docker-compose pull && docker-compose up --remove-orphans"
   },
   "homepage": "https://github.com/subquery/cosmos-subql-starter",
   "repository": "github:subquery/cosmos-subql-starter",
