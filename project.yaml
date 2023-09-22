@@ -15,7 +15,7 @@ repository: "https://github.com/subquery/juno-subql-starter"
 schema:
   file: ./schema.graphql
 network:
-  chainId: doravota-devnet
+  chainId: vota-ash
   # This endpoint must be a public non-pruned archive node
   # We recommend providing more than one endpoint for improved reliability, performance, and uptime
   # Public nodes may be rate limited, which can affect indexing speed
