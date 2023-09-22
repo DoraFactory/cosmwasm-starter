@@ -125,7 +125,7 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
       .find((event) => event.type === "tx")!
       .attributes.find((attr) => attr.key === "fee")?.value;
     if (fee === undefined) {
-      fee = "0uDORA";
+      fee = "0peaka";
       txSTatus = TxStatus.Fail;
     }
     let gasUsed = BigInt(msg.tx.tx.gasUsed);
@@ -168,7 +168,7 @@ export async function handleInstantiateMessage(
   logger.info("=================================================");
 
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
-  if (code_id === 52) {
+  if (code_id === 4) {
     logger.info(
       "======================== circuit maci qf !!!!! ========================="
     );
@@ -214,7 +214,7 @@ export async function handleInstantiateMessage(
     let results = JSON.stringify([]);
     let allResult = "0";
 
-    let maciDenom = "uDORA";
+    let maciDenom = "peaka";
     logger.info(`contractAddress: ${contractAddress}`);
     let allRound = (await store.getByField(`Round`, "maciDenom", maciDenom, {
       limit: 100000,
@@ -252,7 +252,7 @@ export async function handleInstantiateMessage(
       .find((event) => event.type === "tx")!
       .attributes.find((attr) => attr.key === "fee")?.value;
     if (fee === undefined) {
-      fee = "0uDORA";
+      fee = "0peaka";
       txSTatus = TxStatus.Fail;
     }
     let gasUsed = BigInt(msg.tx.tx.gasUsed);
