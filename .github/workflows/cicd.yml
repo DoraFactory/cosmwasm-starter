@@ -21,7 +21,7 @@ jobs:
     - name: Run local build
       run: |
         npm install --global yarn
-        npm install -g @subql/cli
+        npm install -g @subql/cli@3.3.0
         yarn install
         subql codegen
         CI=false subql build
