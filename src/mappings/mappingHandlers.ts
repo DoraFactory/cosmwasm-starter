@@ -214,7 +214,7 @@ export async function handleInstantiateMessage(
     let results = JSON.stringify([]);
     let allResult = "0";
 
-    let maciDenom = "uDORA";
+    let maciDenom = "peaka";
     logger.info(`contractAddress: ${contractAddress}`);
     let allRound = (await store.getByField(`Round`, "maciDenom", maciDenom, {
       limit: 100000,
