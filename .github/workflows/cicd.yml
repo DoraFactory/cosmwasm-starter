@@ -23,8 +23,8 @@ jobs:
         npm install --global yarn
         npm install -g @subql/cli@3.3.0
         yarn install
-        yarn codegen
-        CI=false yarn build
+        subql codegen
+        CI=false subql build
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
