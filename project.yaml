@@ -38,7 +38,9 @@ network:
   #       - WeightedVoteOption
 dataSources:
   - kind: cosmos/Runtime
-    startBlock: 359775 # code_id is 4
+    # startBlock: 359775 # code_id is 4
+    # startBlock: 376700 # code_id is 4 deploy round data
+    startBlock: 402200 # code_id is 5
     mapping:
       file: ./dist/index.js
       handlers:
