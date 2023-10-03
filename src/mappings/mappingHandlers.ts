@@ -172,7 +172,7 @@ export async function handleInstantiateMessage(
     logger.info(
       "======================== circuit maci qf !!!!! ========================="
     );
-    let circuit = "MACI-QF";
+    let circuit = "MACI-QV_2-1-1-5";
     let blockHeight = msg.block.block.header.height;
     let timestamp = msg.tx.block.header.time.getTime().toString();
     let txHash = msg.tx.hash;
