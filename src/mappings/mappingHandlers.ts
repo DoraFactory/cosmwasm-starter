@@ -30,6 +30,10 @@ enum PeriodStatus {
 enum RoundActionType {
   Deploy = "op:deploy",
   SetConfig = "op:settings",
+  EnableGS = "op:enableGS",
+  DisableGS = "op:disableGS",
+  FundGS = "op:fundGS",
+  WithdrawGS = "op:withdrawGS",
   SignUp = "signup",
   DeactivateKey = "msg:deactivateKey",
   Vote = "msg:vote",
@@ -114,6 +118,14 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
       roundRecord.status = RoundStatus.Closed;
       roundRecord.save();
       type = RoundActionType.StopTallying;
+    } else if (actionName === "grant") {
+      type = RoundActionType.EnableGS;
+    } else if (actionName === "revoke") {
+      type = RoundActionType.DisableGS;
+    } else if (actionName === "bond") {
+      type = RoundActionType.FundGS;
+    } else if (actionName === "withdraw") {
+      type = RoundActionType.WithdrawGS;
     }
 
     let blockHeight = BigInt(msg.block.block.header.height);
@@ -130,8 +142,6 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
     }
     let gasUsed = BigInt(msg.tx.tx.gasUsed);
     let gasWanted = BigInt(msg.tx.tx.gasWanted);
-    // let other = JSON.stringify(msg.msg.decodedMsg);
-    // let event = JSON.stringify(msg.tx.tx.events);
     let txRecord = Transaction.create({
       id: txHash,
       blockHeight,
@@ -146,7 +156,6 @@ export async function handleMessage(msg: CosmosMessage): Promise<void> {
       gasWanted,
       caller: sender,
       contractAddress,
-      // other: other,
     });
     txRecord.save();
 
@@ -168,7 +177,7 @@ export async function handleInstantiateMessage(
   logger.info("=================================================");
 
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
-  if (code_id === 5) {
+  if (code_id === 5 || code_id === 13) {
     logger.info(
       "======================== circuit maci qf !!!!! ========================="
     );
@@ -219,6 +228,10 @@ export async function handleInstantiateMessage(
     let allRound = (await store.getByField(`Round`, "maciDenom", maciDenom, {
       limit: 100000,
     })) as unknown as Round[];
+    let gasStationEnable = false;
+    let totalGrant = "0";
+    let baseGrant = "0";
+    let totalBond = "0";
 
     let roundId = (allRound.length + 1).toString();
     const roundRecord = Round.create({
@@ -244,6 +257,10 @@ export async function handleInstantiateMessage(
       results,
       allResult,
       maciDenom,
+      gasStationEnable,
+      totalGrant,
+      baseGrant,
+      totalBond,
     });
 
     let sender = operator;
@@ -257,8 +274,6 @@ export async function handleInstantiateMessage(
     }
     let gasUsed = BigInt(msg.tx.tx.gasUsed);
     let gasWanted = BigInt(msg.tx.tx.gasWanted);
-    // let other = JSON.stringify(msg.msg.decodedMsg);
-    // let event = JSON.stringify(msg.tx.tx.events);
     let txRecord = Transaction.create({
       id: txHash,
       blockHeight: BigInt(blockHeight),
@@ -321,6 +336,14 @@ export async function handleEvent(event: CosmosEvent): Promise<void> {
       handleSetVoteOption(event, roundRecord);
     } else if (action_event === "stop_tallying_period") {
       handleStopTallyingPeriod(event, roundRecord);
+    } else if (action_event === "grant") {
+      handleGrant(event, roundRecord);
+    } else if (action_event === "revoke") {
+      handleRevoke(event, roundRecord);
+    } else if (action_event === "bond") {
+      handleBond(event, roundRecord);
+    } else if (action_event === "withdraw") {
+      handleWithdraw(event, roundRecord);
     }
   }
 }
@@ -502,12 +525,87 @@ export async function handleStopTallyingPeriod(
 ): Promise<void> {
   logger.info(`------------------- stop tallying period`);
   logger.info(event.event.attributes);
+
   const results = event.event.attributes.find((attr) => attr.key === "results")!
     .value!;
   const allResult = event.event.attributes.find(
     (attr) => attr.key === "all_result"
   )!.value!;
+
   roundRecord.results = results;
   roundRecord.allResult = allResult;
+  roundRecord.save();
+}
+
+export async function handleGrant(
+  event: CosmosEvent,
+  roundRecord: Round
+): Promise<void> {
+  logger.info(`------------------- grant`);
+  logger.info(event.event.attributes);
+
+  const maxAmount = event.event.attributes.find(
+    (attr) => attr.key === "max_amount"
+  )!.value!;
+  const baseAmount = event.event.attributes.find(
+    (attr) => attr.key === "base_amount"
+  )!.value!;
+  const bondAmount = event.event.attributes.find(
+    (attr) => attr.key === "bond_amount"
+  )!.value!;
+
+  roundRecord.totalGrant = maxAmount;
+  roundRecord.baseGrant = baseAmount;
+  roundRecord.totalBond = (
+    Number(roundRecord.totalBond) + Number(bondAmount)
+  ).toString();
+  roundRecord.gasStationEnable = true;
+  roundRecord.save();
+}
+
+export async function handleRevoke(
+  event: CosmosEvent,
+  roundRecord: Round
+): Promise<void> {
+  logger.info(`------------------- revoke`);
+  logger.info(event.event.attributes);
+
+  roundRecord.totalGrant = "0";
+  roundRecord.baseGrant = "0";
+  roundRecord.gasStationEnable = false;
+  roundRecord.save();
+}
+
+export async function handleBond(
+  event: CosmosEvent,
+  roundRecord: Round
+): Promise<void> {
+  logger.info(`------------------- bond`);
+  logger.info(event.event.attributes);
+
+  const bondAmount = event.event.attributes.find(
+    (attr) => attr.key === "amount"
+  )!.value!;
+
+  roundRecord.totalBond = (
+    Number(roundRecord.totalBond) + Number(bondAmount)
+  ).toString();
+  roundRecord.save();
+}
+
+export async function handleWithdraw(
+  event: CosmosEvent,
+  roundRecord: Round
+): Promise<void> {
+  logger.info(`------------------- withdraw`);
+  logger.info(event.event.attributes);
+
+  const withdrawAmount = event.event.attributes.find(
+    (attr) => attr.key === "amount"
+  )!.value!;
+
+  roundRecord.totalBond = (
+    Number(roundRecord.totalBond) - Number(withdrawAmount)
+  ).toString();
   roundRecord.save();
 }

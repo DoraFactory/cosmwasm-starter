@@ -36,6 +36,10 @@ type Round @entity {
   results: String!
   allResult: String!
   maciDenom: String! @index
+  gasStationEnable: Boolean!
+  totalGrant: String!
+  baseGrant: String!
+  totalBond: String!
 }
 
 
