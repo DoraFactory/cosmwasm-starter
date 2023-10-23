@@ -175,13 +175,16 @@ export async function handleInstantiateMessage(
 ): Promise<void> {
   logger.info("=================== Instantiate Message =====================");
   logger.info("=================================================");
-
+  const CircuitMap: Record<string, string> = {
+    "0": "MACI-QV+1P1V",
+    "1": "MACI-QV+1P1V",
+  };
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
-  if (code_id === 5 || code_id === 13) {
+  if (code_id === 1) {
+    // if (code_id === 5 || code_id === 13) {
     logger.info(
       "======================== circuit maci qf !!!!! ========================="
     );
-    let circuit = "MACI-QV_2-1-1-5";
     let blockHeight = msg.block.block.header.height;
     let timestamp = msg.tx.block.header.time.getTime().toString();
     let txHash = msg.tx.hash;
@@ -215,6 +218,19 @@ export async function handleInstantiateMessage(
     let coordinatorPubkeyX = msg.msg.decodedMsg["msg"]["coordinator"]["x"];
     let coordinatorPubkeyY = msg.msg.decodedMsg["msg"]["coordinator"]["y"];
     let maxVoteOptions = msg.msg.decodedMsg["msg"]["max_vote_options"];
+    let circuitType: string = msg.msg.decodedMsg["msg"]["circuit_type"];
+
+    let stateTreeDepth =
+      msg.msg.decodedMsg["msg"]["parameters"]["state_tree_depth"];
+    let intStateTreeDepth =
+      msg.msg.decodedMsg["msg"]["parameters"]["int_state_tree_depth"];
+    let voteOptionTreeDepth =
+      msg.msg.decodedMsg["msg"]["parameters"]["vote_option_tree_depth"];
+    let messageBatchSize =
+      msg.msg.decodedMsg["msg"]["parameters"]["message_batch_size"];
+    let circuitPower = `${stateTreeDepth}-${intStateTreeDepth}-${voteOptionTreeDepth}-${messageBatchSize}`;
+
+    let circuit = `${CircuitMap[circuitType]}_${circuitPower}`;
 
     let voteOptionMap = JSON.stringify(
       Array.from({ length: Number(maxVoteOptions) }, () => "")
@@ -261,6 +277,8 @@ export async function handleInstantiateMessage(
       totalGrant,
       baseGrant,
       totalBond,
+      circuitType,
+      circuitPower,
     });
 
     let sender = operator;
@@ -581,7 +599,6 @@ export async function handleBond(
   roundRecord: Round
 ): Promise<void> {
   logger.info(`------------------- bond`);
-  logger.info(event.event.attributes);
 
   const bondAmount = event.event.attributes.find(
     (attr) => attr.key === "amount"

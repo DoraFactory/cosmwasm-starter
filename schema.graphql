@@ -40,6 +40,8 @@ type Round @entity {
   totalGrant: String!
   baseGrant: String!
   totalBond: String!
+  circuitType: String!
+  circuitPower: String! # state_tree_depth-int_state_tree_depth-vote_option_tree_depth-message_batch_size
 }
 
 
