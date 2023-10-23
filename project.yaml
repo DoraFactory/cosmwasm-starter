@@ -15,31 +15,19 @@ repository: "https://github.com/subquery/juno-subql-starter"
 schema:
   file: ./schema.graphql
 network:
-  chainId: doravota-devnet
+  chainId: vota-testnet
   # This endpoint must be a public non-pruned archive node
   # We recommend providing more than one endpoint for improved reliability, performance, and uptime
   # Public nodes may be rate limited, which can affect indexing speed
   # When developing your project we suggest getting a private API key
-  endpoint: ["http://18.139.226.67:26657"]
-  # Optionally provide the HTTP endpoint of a full chain dictionary to speed up processing
-  # dictionary: "https://api.subquery.network/sq/subquery/cosmos-hub-dictionary"
-  # chainTypes:
-  #   cosmos.slashing.v1beta1:
-  #     file: ./proto/cosmos/slashing/v1beta1/tx.proto
-  #     messages:
-  #       - MsgUnjail
-  #   cosmos.gov.v1beta1:
-  #     file: ./proto/cosmos/gov/v1beta1/tx.proto
-  #     messages:
-  #       - MsgVoteWeighted
-  #   cosmos.gov.v1beta1.gov:
-  #     file: ./proto/cosmos/gov/v1beta1/gov.proto
-  #     messages:
-  #       - WeightedVoteOption
+  endpoint: ["https://vota-testnet-rpc.dorafactory.org:443"]
 dataSources:
   - kind: cosmos/Runtime
-    # startBlock: 1267100 # code_id is 50
-    startBlock: 1323500 # code_id is 52
+    # startBlock: 359775 # code_id is 4
+    # startBlock: 376700 # code_id is 4 deploy round data
+    # startBlock: 402200 # code_id is 5
+    # startBlock: 819300 # code_id is 13
+    startBlock: 190194 # code_id is 1, testnet
     mapping:
       file: ./dist/index.js
       handlers:
@@ -59,11 +47,9 @@ dataSources:
         - handler: handleMessage
           kind: cosmos/MessageHandler
           filter:
-            # includeFailedTx: true
             type: "/cosmwasm.wasm.v1.MsgExecuteContract"
 
         - handler: handleInstantiateMessage
           kind: cosmos/MessageHandler
           filter:
-            # includeFailedTx: true
             type: "/cosmwasm.wasm.v1.MsgInstantiateContract"

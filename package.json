@@ -22,10 +22,7 @@
   "author": "SubQuery Team",
   "license": "MIT",
   "devDependencies": {
-    "@cosmjs/stargate": "^0.28.9",
-    "@subql/cli": "latest",
     "@subql/testing": "latest",
-    "@subql/node-cosmos": "latest",
     "typescript": "^4.7.4"
   },
   "dependencies": {
