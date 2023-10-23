@@ -176,8 +176,8 @@ export async function handleInstantiateMessage(
   logger.info("=================== Instantiate Message =====================");
   logger.info("=================================================");
   const CircuitMap: Record<string, string> = {
-    "0": "MACI-QV+1P1V",
-    "1": "MACI-QV+1P1V",
+    "0": "MACI-1P1V",
+    "1": "MACI-QV",
   };
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
   if (code_id === 1) {
