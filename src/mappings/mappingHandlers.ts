@@ -244,6 +244,14 @@ export async function handleInstantiateMessage(
     let baseGrant = "0";
     let totalBond = "0";
 
+    console.log("-------- new --------");
+    console.log(
+      gasStationEnable,
+      totalGrant,
+      baseGrant,
+      totalBond,
+      circuitType
+    );
     let roundId = (allRound.length + 1).toString();
     const roundRecord = Round.create({
       id: `${contractAddress}`,
