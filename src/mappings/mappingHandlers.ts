@@ -5,12 +5,7 @@ import {
   Transaction,
   ProcessProof,
 } from "../types";
-import {
-  CosmosEvent,
-  CosmosBlock,
-  CosmosMessage,
-  CosmosTransaction,
-} from "@subql/types-cosmos";
+import { CosmosEvent, CosmosMessage } from "@subql/types-cosmos";
 
 enum RoundStatus {
   Created = "Created",
@@ -180,8 +175,8 @@ export async function handleInstantiateMessage(
     "1": "MACI-QV",
   };
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
-  if (code_id === 1) {
-    // if (code_id === 5 || code_id === 13) {
+  // if (code_id === 1) {
+  if (code_id === 5 || code_id === 14) {
     logger.info(
       "======================== circuit maci qf !!!!! ========================="
     );
@@ -218,7 +213,7 @@ export async function handleInstantiateMessage(
     let coordinatorPubkeyX = msg.msg.decodedMsg["msg"]["coordinator"]["x"];
     let coordinatorPubkeyY = msg.msg.decodedMsg["msg"]["coordinator"]["y"];
     let maxVoteOptions = msg.msg.decodedMsg["msg"]["max_vote_options"];
-    let circuitType: string = msg.msg.decodedMsg["msg"]["circuit_type"];
+    let circuitType: string = msg.msg.decodedMsg["msg"]["circuit_type"] || "0";
 
     let stateTreeDepth =
       msg.msg.decodedMsg["msg"]["parameters"]["state_tree_depth"];
