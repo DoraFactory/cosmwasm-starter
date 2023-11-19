@@ -42,6 +42,7 @@ type Round @entity {
   totalBond: String!
   circuitType: String!
   circuitPower: String! # state_tree_depth-int_state_tree_depth-vote_option_tree_depth-message_batch_size
+  certificationSystem: String!
 }
 
 
@@ -83,15 +84,18 @@ type PublishMessageEvent @entity {
   contractAddress: String!
 }
 
-type ProcessProof @entity {
+type ProofData @entity {
   id: ID! # blockNum - eventId
   blockHeight: BigInt!
   timestamp: String!
   txHash: String!
   actionType: String! # message / tally
-  piA: String!
-  piB: String!
-  piC: String!
+  proof: String!
+  certificationSystem: String!
+  verifyResult: String!
+  # piA: String!
+  # piB: String!
+  # piC: String!
   commitment: String!
   contractAddress: String!
 }
