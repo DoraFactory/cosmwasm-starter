@@ -3,14 +3,9 @@ import {
   Round,
   SignUpEvent,
   Transaction,
-  ProcessProof,
+  ProofData,
 } from "../types";
-import {
-  CosmosEvent,
-  CosmosBlock,
-  CosmosMessage,
-  CosmosTransaction,
-} from "@subql/types-cosmos";
+import { CosmosEvent, CosmosMessage } from "@subql/types-cosmos";
 
 enum RoundStatus {
   Created = "Created",
@@ -180,8 +175,8 @@ export async function handleInstantiateMessage(
     "1": "MACI-QV",
   };
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
-  if (code_id === 1) {
-    // if (code_id === 5 || code_id === 13) {
+  // if (code_id === 1) {
+  if (code_id === 5 || code_id === 14) {
     logger.info(
       "======================== circuit maci qf !!!!! ========================="
     );
@@ -218,7 +213,15 @@ export async function handleInstantiateMessage(
     let coordinatorPubkeyX = msg.msg.decodedMsg["msg"]["coordinator"]["x"];
     let coordinatorPubkeyY = msg.msg.decodedMsg["msg"]["coordinator"]["y"];
     let maxVoteOptions = msg.msg.decodedMsg["msg"]["max_vote_options"];
-    let circuitType: string = msg.msg.decodedMsg["msg"]["circuit_type"];
+    let circuitType: string = msg.msg.decodedMsg["msg"]["circuit_type"] || "0"; // 0: 1p1v, 1: pv
+
+    let certificationSystem = "groth16";
+
+    if (msg.msg.decodedMsg["msg"]["certification_system"] === "0") {
+      certificationSystem = "groth16";
+    } else if (msg.msg.decodedMsg["msg"]["certification_system"] === "1") {
+      certificationSystem = "plonk";
+    }
 
     let stateTreeDepth =
       msg.msg.decodedMsg["msg"]["parameters"]["state_tree_depth"];
@@ -248,6 +251,13 @@ export async function handleInstantiateMessage(
     let totalGrant = "0";
     let baseGrant = "0";
     let totalBond = "0";
+    logger.info(`-------- new --------`);
+    logger.info(`gasStationEnable: ${gasStationEnable}`);
+    logger.info(`totalGrant: ${totalGrant}`);
+    logger.info(`baseGrant: ${baseGrant}`);
+    logger.info(`totalBond: ${totalBond}`);
+    logger.info(`circuitType: ${circuitType}`);
+    logger.info(`---------------------`);
 
     let roundId = (allRound.length + 1).toString();
     const roundRecord = Round.create({
@@ -279,6 +289,7 @@ export async function handleInstantiateMessage(
       totalBond,
       circuitType,
       circuitPower,
+      certificationSystem,
     });
 
     let sender = operator;
@@ -493,31 +504,37 @@ export async function handleProofEvent(
   contractAddress: string,
   actionType: string
 ): Promise<void> {
-  let zk_verify_result = event.event.attributes.find(
+  let verifyResult = event.event.attributes.find(
     (attr) => attr.key === "zk_verify"
   )!.value!;
 
-  if (zk_verify_result === "true") {
-    const piA = event.event.attributes.find((attr) => attr.key === "pi_a")!
+  if (verifyResult === "true") {
+    const proof = event.event.attributes.find((attr) => attr.key === "proof")!
       .value!;
-    const piB = event.event.attributes.find((attr) => attr.key === "pi_b")!
-      .value!;
-    const piC = event.event.attributes.find((attr) => attr.key === "pi_c")!
-      .value!;
+
+    const certificationSystem = event.event.attributes.find(
+      (attr) => attr.key === "certification_system"
+    )!.value!;
+    // const piA = event.event.attributes.find((attr) => attr.key === "pi_a")!
+    //   .value!;
+    // const piB = event.event.attributes.find((attr) => attr.key === "pi_b")!
+    //   .value!;
+    // const piC = event.event.attributes.find((attr) => attr.key === "pi_c")!
+    //   .value!;
     const commitment = event.event.attributes.find(
       (attr) => attr.key === "commitment"
     )!.value!;
 
     let timestamp = event.tx.block.header.time.getTime().toString();
-    const eventRecord = ProcessProof.create({
+    const eventRecord = ProofData.create({
       id: `${event.tx.hash}-${event.msg.idx}-${event.idx}`,
       blockHeight: BigInt(event.block.block.header.height),
       timestamp,
       txHash: event.tx.hash,
       actionType,
-      piA,
-      piB,
-      piC,
+      proof,
+      verifyResult,
+      certificationSystem,
       commitment,
       contractAddress: contractAddress,
     });
