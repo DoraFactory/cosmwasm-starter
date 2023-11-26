@@ -216,13 +216,10 @@ export async function handleInstantiateMessage(
     let circuitType: string = msg.msg.decodedMsg["msg"]["circuit_type"] || "0"; // 0: 1p1v, 1: pv
 
     let certificationSystem = "groth16";
-    if (
-      msg.msg.decodedMsg["msg"]["parameters"]["certification_system"] === "0"
-    ) {
+
+    if (msg.msg.decodedMsg["msg"]["certification_system"] === "0") {
       certificationSystem = "groth16";
-    } else if (
-      msg.msg.decodedMsg["msg"]["parameters"]["certification_system"] === "1"
-    ) {
+    } else if (msg.msg.decodedMsg["msg"]["certification_system"] === "1") {
       certificationSystem = "plonk";
     }
 
