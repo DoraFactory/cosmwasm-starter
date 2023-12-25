@@ -28,7 +28,7 @@ dataSources:
     # startBlock: 402200 # code_id is 5
     # startBlock: 819300 # code_id is 13
     # startBlock: 16380 # code_id is 1, testnet
-    startBlock: 369500
+    startBlock: 24730
     mapping:
       file: ./dist/index.js
       handlers:
