@@ -176,7 +176,8 @@ export async function handleInstantiateMessage(
   };
   let code_id = msg.msg.decodedMsg["codeId"]["low"];
   // if (code_id === 1) {
-  if (code_id === 5 || code_id === 14) {
+  // if (code_id === 5 || code_id === 14) {
+  if (code_id === 1) {
     logger.info(
       "======================== circuit maci qf !!!!! ========================="
     );
