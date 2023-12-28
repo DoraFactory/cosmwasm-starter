@@ -511,12 +511,34 @@ export async function handleProofEvent(
   )!.value!;
 
   if (verifyResult === "true") {
-    const proof = event.event.attributes.find((attr) => attr.key === "proof")!
-      .value!;
-
-    const certificationSystem = event.event.attributes.find(
+    let certificationSystemEventValue = event.event.attributes.find(
       (attr) => attr.key === "certification_system"
-    )!.value!;
+    );
+    let certificationSystem = "groth16";
+    if (certificationSystemEventValue !== undefined) {
+      certificationSystem = certificationSystemEventValue.value;
+    }
+
+    let proof = "";
+    try {
+      const proofData = event.event.attributes.find(
+        (attr) => attr.key === "proof"
+      )!.value!;
+      proof = proofData;
+    } catch {
+      const piA = event.event.attributes.find((attr) => attr.key === "pi_a")!
+        .value!;
+      const piB = event.event.attributes.find((attr) => attr.key === "pi_b")!
+        .value!;
+      const piC = event.event.attributes.find((attr) => attr.key === "pi_c")!
+        .value!;
+      proof = JSON.stringify({
+        piA,
+        piB,
+        piC,
+      });
+    }
+
     // const piA = event.event.attributes.find((attr) => attr.key === "pi_a")!
     //   .value!;
     // const piB = event.event.attributes.find((attr) => attr.key === "pi_b")!
@@ -562,16 +584,28 @@ export async function handleStopTallyingPeriod(
 ): Promise<void> {
   logger.info(`------------------- stop tallying period`);
   logger.info(event.event.attributes);
+  if (event.event.attributes !== undefined) {
+    const resultsData = event.event.attributes.find(
+      (attr) => attr.key === "results"
+    );
 
-  const results = event.event.attributes.find((attr) => attr.key === "results")!
-    .value!;
-  const allResult = event.event.attributes.find(
-    (attr) => attr.key === "all_result"
-  )!.value!;
+    const allResultData = event.event.attributes.find(
+      (attr) => attr.key === "all_result"
+    );
 
-  roundRecord.results = results;
-  roundRecord.allResult = allResult;
-  roundRecord.save();
+    let results = "";
+    let allResult = "";
+    if (resultsData !== undefined) {
+      results = resultsData.value;
+    }
+
+    if (allResultData !== undefined) {
+      allResult = allResultData.value;
+    }
+    roundRecord.results = results;
+    roundRecord.allResult = allResult;
+    roundRecord.save();
+  }
 }
 
 export async function handleGrant(
